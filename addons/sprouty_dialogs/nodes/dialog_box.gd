@@ -152,7 +152,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if Engine.is_editor_hint():
+	if Engine.is_editor_hint() and not has_meta("sprouty_preview"):
 		return
 	if not _is_running:
 		return
@@ -300,29 +300,44 @@ func display_portrait(character_parent: Node, portrait_node: Node) -> void:
 #region === Display options ====================================================
 
 ## Display the dialog options
-func display_options(options: Array) -> void:
+func display_options(options: Array, disabled_flags: Array = []) -> void:
 	_is_displaying_options = true
+
 	if not options_container:
-		printerr("[SproutyDialogs] Dialog options container is not set. 
-			Please set the 'options_container' property in the '" + name + "' Dialog Box on the inspector.")
+		printerr("[SproutyDialogs] Dialog options container is not set. Please set 'options_container' in '" + name + "'.")
 		return
 	if not option_template:
-		printerr("[SproutyDialogs] Dialog option template is not set. 
-			Please set the 'option_template' property in the '" + name + "' Dialog Box on the inspector.")
+		printerr("[SproutyDialogs] Dialog option template is not set. Please set 'option_template' in '" + name + "'.")
 		return
-	# Clear previous options
+
+	# Clear previous options (this was missing and caused repeats)
 	for child in options_container.get_children():
 		child.queue_free()
 
-	for index in options.size(): # Add new options
+	var selectable_index := 0
+	for index in options.size():
 		var option_node = option_template.duplicate()
-		option_node.option_index = index
 		option_node.set_text(options[index])
+
+		var is_disabled: bool = index < disabled_flags.size() and bool(disabled_flags[index])
+		option_node.disabled = is_disabled
+		option_node.modulate = Color(0.6, 0.6, 0.6, 1.0) if is_disabled else Color(1, 1, 1, 1)
+
+		if is_disabled:
+			option_node.focus_mode = Control.FOCUS_NONE
+		else:
+			var option_index := selectable_index
+			selectable_index += 1
+			if option_node is Button:
+				option_node.pressed.connect(func(): option_selected.emit(option_index))
+
 		options_container.add_child(option_node)
-		option_node.option_selected.connect(option_selected.emit)
 		option_node.show()
+
 	_on_options_displayed()
 	show()
+
+
 
 
 ## Hide the dialog options

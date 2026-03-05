@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://cqwb54oljok4j"]
+
+[ext_resource type="Script" uid="uid://cnvyd6dqc55b" path="res://addons/sprouty_dialogs/nodes/defaults/journal_dialog_box.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://tkq4pamepmr5" path="res://addons/sprouty_dialogs/editor/icons/interactable/collapse-down.svg" id="3"]
+[ext_resource type="Script" uid="uid://cdtkvrnke623v" path="res://addons/sprouty_dialogs/nodes/dialog_option.gd" id="4"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_twt8s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_twt8s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dvwve"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h7dwm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bfi2c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qs7bx"]
+
+[node name="DialogBox" type="Control" unique_id=1897294984 node_paths=PackedStringArray("dialog_display", "name_display", "continue_indicator", "options_container", "option_template")]
+custom_minimum_size = Vector2(760, 380)
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -420.0
+offset_right = 380.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1")
+option_color_normal = Color(1, 1, 1, 1)
+typing_speed = 0.05
+max_characters = 0
+dialog_display = NodePath("Templates/DialogueEntryTemplate/Dialog")
+name_display = NodePath("Templates/DialogueEntryTemplate/Name")
+continue_indicator = NodePath("MainPanel/Margin/Layout/ContinueIndicator")
+options_container = NodePath("Templates/OptionsEntryTemplate")
+option_template = NodePath("Templates/OptionTemplate")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1853607654]
+self_modulate = Color(0.28, 0.3, 0.33, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_right = 195.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("CanvasTexture_twt8s")
+expand_mode = 1
+
+[node name="MainPanel" type="PanelContainer" parent="." unique_id=733058846]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -34.0
+offset_right = 27.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="MainPanel" unique_id=1614696279]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Layout" type="VBoxContainer" parent="MainPanel/Margin" unique_id=1532798715]
+layout_mode = 2
+
+[node name="HistoryScroll" type="ScrollContainer" parent="MainPanel/Margin/Layout" unique_id=1148350558]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="HistoryContainer" type="VBoxContainer" parent="MainPanel/Margin/Layout/HistoryScroll" unique_id=746789989]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ContinueIndicator" type="TextureRect" parent="MainPanel/Margin/Layout" unique_id=177102774]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_horizontal = 8
+texture = ExtResource("3")
+expand_mode = 2
+stretch_mode = 5
+
+[node name="Templates" type="Node" parent="." unique_id=549623122]
+
+[node name="DialogueEntryTemplate" type="VBoxContainer" parent="Templates" unique_id=248968384]
+visible = false
+size_flags_horizontal = 3
+
+[node name="Name" type="RichTextLabel" parent="Templates/DialogueEntryTemplate" unique_id=612740114]
+layout_mode = 2
+bbcode_enabled = true
+text = "Name"
+fit_content = true
+
+[node name="Dialog" type="RichTextLabel" parent="Templates/DialogueEntryTemplate" unique_id=1955395339]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "Dialog text"
+fit_content = true
+scroll_active = false
+
+[node name="OptionsEntryTemplate" type="VBoxContainer" parent="Templates" unique_id=509100960]
+visible = false
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="OptionTemplate" type="Button" parent="Templates" unique_id=1661292507]
+visible = false
+custom_minimum_size = Vector2(300, 0)
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxEmpty_twt8s")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_dvwve")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_h7dwm")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_bfi2c")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qs7bx")
+text = "Option"
+script = ExtResource("4")
+metadata/_custom_type_script = "uid://cdtkvrnke623v"

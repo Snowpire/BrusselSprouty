@@ -16,8 +16,11 @@ signal nodes_loaded
 
 ## Emitted when is requesting to open a character file
 signal open_character_file_request(path: String)
-## Emitted when is requesting to play a dialog from a start node
+## Emitted when is requesting to play a dialog from the menu
 signal play_dialog_request(start_id: String)
+
+## Emitted when is requesting to play a dialog from a start node
+signal play_dialog_popup_request(start_id: String)
 
 ## Emitted when a expand button to open the text editor is pressed
 signal open_text_editor(text_box: TextEdit)
@@ -220,7 +223,7 @@ func _connect_node_signals(node: SproutyDialogsBaseNode) -> void:
 	
 	match node.node_type: # Connect specific node signals
 		"start_node":
-			node.play_dialog_request.connect(play_dialog_request.emit)
+			node.play_dialog_request.connect(play_dialog_popup_request.emit)
 		"dialogue_node":
 			node.open_character_file_request.connect(open_character_file_request.emit)
 
@@ -244,7 +247,7 @@ func _disconnect_node_signals(node: SproutyDialogsBaseNode) -> void:
 	
 	match node.node_type: # Disconnect specific node signals
 		"start_node":
-			node.play_dialog_request.disconnect(play_dialog_request.emit)
+			node.play_dialog_request.disconnect(play_dialog_popup_request.emit)
 		"dialogue_node":
 			node.open_character_file_request.disconnect(open_character_file_request.emit)
 
@@ -433,6 +436,10 @@ func _load_nodes_connections() -> void:
 					continue
 				connect_node(child.name, child.to_node.find(output_node), output_node, 0)
 
+				var next_node = get_node_or_null(output_node)
+				if next_node != null:
+					next_node.start_node = child.start_node
+					_update_connections_start_node(next_node)
 #endregion
 
 #region === Nodes Operations ===================================================
@@ -901,13 +908,16 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 
 
 ## Update connected nodes with the new start node
-func _update_connections_start_node(node: SproutyDialogsBaseNode) -> void:
+func _update_connections_start_node(node: SproutyDialogsBaseNode, visited: Dictionary = {}) -> void:
+	if visited.has(node.name):
+		return
+	visited[node.name] = true
 	var connections = node.get_output_connections()
 	for node_name in connections:
 		var next_node = get_node_or_null(node_name)
-		if next_node != null:
+		if next_node != null and not visited.has(next_node.name):
 			next_node.start_node = node.start_node
-			_update_connections_start_node(next_node)
+			_update_connections_start_node(next_node, visited)
 
 
 ## If connection ends on empty space, show add node menu to add a new node
@@ -954,7 +964,7 @@ func _set_add_node_menu() -> void:
 		if node == "placeholder_node":
 			continue # Skip the placeholder node
 		var node_aux = _nodes_references[node]["scene"].instantiate()
-		_add_node_menu.add_icon_item(node_aux.node_icon, node_aux.name.capitalize(), index)
+		_add_node_menu.add_icon_item(node_aux.node_icon, tr(node_aux.name.capitalize()), index)
 		_add_node_menu.set_item_metadata(index, node)
 		node_aux.queue_free()
 		index += 1
@@ -963,15 +973,29 @@ func _set_add_node_menu() -> void:
 ## Set icons on node actions menu
 func _set_node_actions_menu(has_selection: bool = false, paste_enabled: bool = false) -> void:
 	_node_actions_menu.clear()
-	_node_actions_menu.add_icon_item(get_theme_icon("Add", "EditorIcons"), "Add Node", 0)
+	_node_actions_menu.add_icon_item(get_theme_icon("Add", "EditorIcons"), tr("Add Node"), 0)
 	_node_actions_menu.add_separator()
 	if has_selection:
-		_node_actions_menu.add_icon_item(get_theme_icon("Remove", "EditorIcons"), "Remove Node(s)")
-		_node_actions_menu.add_icon_item(get_theme_icon("Duplicate", "EditorIcons"), "Duplicate Node(s)")
-		_node_actions_menu.add_icon_item(get_theme_icon("ActionCopy", "EditorIcons"), "Copy Node(s)")
-		_node_actions_menu.add_icon_item(get_theme_icon("ActionCut", "EditorIcons"), "Cut Node(s)")
+		_node_actions_menu.add_icon_item(get_theme_icon("Remove", "EditorIcons"),
+			tr("Remove Nodes") if _selected_nodes.size() > 1 else tr("Remove Node"), 1)
+		_node_actions_menu.add_icon_item(get_theme_icon("Duplicate", "EditorIcons"),
+			tr("Duplicate Nodes") if _selected_nodes.size() > 1 else tr("Duplicate Node"), 2)
+		_node_actions_menu.add_icon_item(get_theme_icon("ActionCopy", "EditorIcons"),
+			tr("Copy Nodes") if _selected_nodes.size() > 1 else tr("Copy Node"), 3)
+		_node_actions_menu.add_icon_item(get_theme_icon("ActionCut", "EditorIcons"),
+			tr("Cut Nodes") if _selected_nodes.size() > 1 else tr("Cut Node"), 4)
 	if paste_enabled:
-		_node_actions_menu.add_icon_item(get_theme_icon("ActionPaste", "EditorIcons"), "Paste Node(s)")
+		_node_actions_menu.add_icon_item(get_theme_icon("ActionPaste", "EditorIcons"),
+			tr("Paste Nodes") if _nodes_copy.size() > 1 else tr("Paste Node"), 5)
+
+
+## Rename the node actions menu items based on the number of selected nodes
+func _rename_node_actions(plural: bool) -> void:
+	_node_actions_menu.set_item_text(2, tr("Remove Nodes") if plural else tr("Remove Node"))
+	_node_actions_menu.set_item_text(3, tr("Duplicate Nodes") if plural else tr("Duplicate Node"))
+	_node_actions_menu.set_item_text(4, tr("Copy Nodes") if plural else tr("Copy Node"))
+	_node_actions_menu.set_item_text(5, tr("Cut Nodes") if plural else tr("Cut Node"))
+	_node_actions_menu.set_item_text(6, tr("Paste Nodes") if plural else tr("Paste Node"))
 
 
 ## Show a pop-up menu at a given position

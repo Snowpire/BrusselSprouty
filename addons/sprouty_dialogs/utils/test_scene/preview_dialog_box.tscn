@@ -1,0 +1,73 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://addons/sprouty_dialogs/utils/test_scene/preview_dialog_box.gd" id="1"]
+[ext_resource type="Script" path="res://addons/sprouty_dialogs/nodes/dialog_option.gd" id="2"]
+
+[node name="PreviewDialogBox" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="DialogPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -220.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 14
+
+[node name="DialogContainer" type="VBoxContainer" parent="DialogPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="NameDisplay" type="RichTextLabel" parent="DialogPanel/MarginContainer/DialogContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 24)
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="DialogDisplay" type="RichTextLabel" parent="DialogPanel/MarginContainer/DialogContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="ContinueIndicator" type="Label" parent="DialogPanel/MarginContainer/DialogContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+horizontal_alignment = 2
+text = "Press to continue"
+
+[node name="OptionsContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -420.0
+offset_bottom = -236.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="DialogOption" type="Button" parent="OptionsContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Option"
+script = ExtResource("2")

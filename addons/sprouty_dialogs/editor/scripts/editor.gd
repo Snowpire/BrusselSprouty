@@ -10,6 +10,7 @@ extends Control
 
 ## Test scene path used to play dialogs in the editor.
 const TEST_SCENE_PATH = "res://addons/sprouty_dialogs/utils/test_scene/dialog_test_scene.tscn"
+const DIALOG_TEST_POPUP_SCENE_PATH = "res://addons/sprouty_dialogs/utils/test_scene/dialog_test_popup.tscn"
 
 ## Side bar reference
 @onready var side_bar: Control = %SideBar
@@ -45,6 +46,9 @@ const TEST_SCENE_PATH = "res://addons/sprouty_dialogs/utils/test_scene/dialog_te
 ## Update manager reference
 @onready var _update_manager: Node = $UpdateManager
 
+## Popup dialog preview (lazy-instantiated to avoid placeholder instances)
+var _dialog_test_popup: Window = null
+
 ## UndoRedo manager
 var undo_redo: EditorUndoRedoManager
 
@@ -72,7 +76,8 @@ func _ready():
 	dialogue_panel.new_dialog_file_pressed.connect(file_manager.on_new_dialog_pressed)
 	dialogue_panel.open_dialog_file_pressed.connect(file_manager.on_open_file_pressed)
 	dialogue_panel.open_character_file_request.connect(file_manager.load_file)
-	dialogue_panel.play_dialog_request.connect(play_dialog_scene)
+	dialogue_panel.play_dialog_request.connect(play_dialog_scene) # toolbar run
+	dialogue_panel.play_dialog_popup_request.connect(play_dialog_from_start_node) # start-node play
 
 	# Character panel signals
 	character_panel.new_character_file_pressed.connect(
@@ -155,6 +160,59 @@ func play_dialog_scene(start_id: String, dialog_path: String = "") -> void:
 	Engine.get_singleton("EditorInterface").play_custom_scene(TEST_SCENE_PATH)
 
 
+## Play a dialog in popup preview from start node
+func play_dialog_from_start_node(start_id: String, dialog_path: String = "") -> void:
+	if SproutyDialogsSettingsManager.get_setting("start_node_use_popup_preview"):
+		play_dialog_popup(start_id, dialog_path)
+	else:
+		play_dialog_scene(start_id, dialog_path)
+
+
+## Play a dialog in popup preview from start node
+func play_dialog_popup(start_id: String, dialog_path: String = "") -> void:
+	file_manager.save_file()
+	if dialog_path.is_empty():
+		dialog_path = file_manager.get_current_file_path()
+		if dialog_path.is_empty():
+			printerr("[Sprouty Dialogs] Cannot preview dialog: No dialog file is open.")
+			return
+
+	_dialog_test_popup = _get_or_create_dialog_test_popup()
+	if _dialog_test_popup == null:
+		printerr("[Sprouty Dialogs] Cannot preview dialog: failed to instantiate DialogTestPopup scene.")
+		return
+
+	_dialog_test_popup.preview_dialog(dialog_path, start_id)
+
+
+func _get_or_create_dialog_test_popup() -> Window:
+	if _dialog_test_popup != null and is_instance_valid(_dialog_test_popup):
+		if _dialog_test_popup.has_method("preview_dialog") \
+				and _dialog_test_popup.has_method("_on_close_requested") \
+				and _dialog_test_popup.has_method("_on_visibility_changed"):
+			return _dialog_test_popup
+		_dialog_test_popup.queue_free()
+		_dialog_test_popup = null
+
+	var popup_scene: PackedScene = load(DIALOG_TEST_POPUP_SCENE_PATH)
+	if popup_scene == null:
+		printerr("[Sprouty Dialogs] Cannot load popup preview scene: " + DIALOG_TEST_POPUP_SCENE_PATH)
+		return null
+
+	var popup = popup_scene.instantiate()
+	if popup == null or not (popup is Window):
+		printerr("[Sprouty Dialogs] Popup preview scene root must be a Window.")
+		return null
+	if not popup.has_method("preview_dialog"):
+		printerr("[Sprouty Dialogs] Popup preview scene script failed to load.")
+		popup.queue_free()
+		return null
+
+	add_child(popup)
+	_dialog_test_popup = popup
+	return _dialog_test_popup
+
+
 ## Set the tab menu icons
 func set_tabs_icons() -> void:
 	for index in tab_icons.size():
@@ -172,20 +230,18 @@ func set_translation_settings() -> void:
 	var dir_path: String = "res://addons/sprouty_dialogs/l10n/"
 	var dir: DirAccess = DirAccess.open(dir_path)
 	if dir == null:
-		printerr("[Sprouty Dialogs] Failed to open translation directory.")
 		return
+
 	dir.list_dir_begin()
 	var file_name: String = dir.get_next()
 	while file_name != "":
-		if dir.current_is_dir() == false:
-			if file_name.ends_with(".translation"):
-				var full_path: String = dir_path.path_join(file_name)
-				var translation: Translation = load(full_path)
-				if translation and translation is Translation:
-					domain.add_translation(translation)
-				else:
-					printerr("[Sprouty Dialogs] Failed to load translation file: " + full_path)
+		if not dir.current_is_dir() and file_name.ends_with(".translation"):
+			var full_path: String = dir_path.path_join(file_name)
+			var translation: Translation = load(full_path)
+			if translation and translation is Translation:
+				domain.add_translation(translation)
 		file_name = dir.get_next()
+
 	set_translation_domain(domain_name)
 
 

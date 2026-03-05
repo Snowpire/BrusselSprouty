@@ -17,6 +17,9 @@ signal update_text_editor(text_box: TextEdit)
 ## Triggered when the option is removed
 signal option_removed(index)
 
+## For checking option conditions.
+signal options_processed(option_entries: Array)
+
 ## Option header to display the option position index
 @onready var _option_label: Label = $OptionHeader/OptionLabel
 ## Remove button
@@ -26,6 +29,9 @@ signal option_removed(index)
 @onready var _default_text_box: EditorSproutyDialogsExpandableTextBox = $ExpandableTextBox
 ## Translations container to handle the dialog translations
 @onready var _translation_boxes: EditorSproutyDialogsTranslationsContainer = $TranslationsContainer
+
+@onready var _conditions_container: EditorSproutyDialogsConditionsContainer = $VBoxContainer/ConditionsContainer
+
 
 ## Default locale for dialog text
 var _default_locale: String = ""
@@ -48,6 +54,7 @@ var _default_text_modified: bool = false
 var undo_redo: EditorUndoRedoManager
 
 
+
 func _ready() -> void:
 	_default_text_box.open_text_editor.connect(open_text_editor.emit)
 	_translation_boxes.open_text_editor.connect(open_text_editor.emit)
@@ -67,6 +74,11 @@ func _ready() -> void:
 			SproutyDialogsSettingsManager.get_setting("enable_translations")
 		)
 
+func get_conditions() -> Dictionary:
+	return _conditions_container.get_data()  # Delegates to conditions_container
+
+func load_conditions(data: Dictionary) -> void:
+	_conditions_container.set_data(data)  # Delegates to conditions_container
 
 ## Return the dialog key for this option
 func get_dialog_key() -> String:

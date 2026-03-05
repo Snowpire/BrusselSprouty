@@ -24,7 +24,7 @@ signal option_selected(option_index: int)
 
 ## Index of the option in the dialog
 var option_index: int = 0
-
+var _raw_text: String = ""
 
 func _ready() -> void:
 	# Connect the button pressed signal
@@ -43,13 +43,13 @@ func get_text() -> String:
 
 ## Set the text of the option
 func set_text(text: String) -> void:
+	_raw_text = text
 	if text_display:
 		text_display.text = text
 	elif rich_text_display:
 		rich_text_display.text = text
 	else:
 		self.text = text
-
 
 ## Handle the option selection
 func _on_option_selected() -> void:

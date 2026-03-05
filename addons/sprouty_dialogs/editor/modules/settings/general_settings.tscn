@@ -147,6 +147,27 @@ flat = true
 [node name="DefaultPortraitSceneField" parent="MarginContainer/ScrollContainer/VBoxContainer/DefaultPortraitScene" unique_id=1154758004 instance=ExtResource("7_og6kh")]
 unique_name_in_owner = true
 layout_mode = 2
+scene_type = 1
+
+[node name="StartNodePreviewMode" type="HBoxContainer" parent="MarginContainer/ScrollContainer/VBoxContainer" unique_id=189337522]
+layout_mode = 2
+tooltip_text = "If enabled, pressing Play on a Start Node uses the in-editor popup preview.
+If disabled, it runs the real test scene like the toolbar Run button."
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer/StartNodePreviewMode" unique_id=205719993]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Start Node Debug Player"
+
+[node name="ResetButton" type="Button" parent="MarginContainer/ScrollContainer/VBoxContainer/StartNodePreviewMode" unique_id=611028557]
+layout_mode = 2
+icon = ExtResource("3_og6kh")
+flat = true
+
+[node name="StartNodePopupPreviewToggle" type="CheckButton" parent="MarginContainer/ScrollContainer/VBoxContainer/StartNodePreviewMode" unique_id=177614524]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
 
 [node name="HSeparator2" type="HSeparator" parent="MarginContainer/ScrollContainer/VBoxContainer" unique_id=1021078704]
 layout_mode = 2
@@ -240,6 +261,7 @@ size_flags_horizontal = 3
 text = "Use custom event nodes"
 
 [node name="ResetButton" type="Button" parent="MarginContainer/ScrollContainer/VBoxContainer/UseCustomNodes" unique_id=1328093936]
+visible = false
 layout_mode = 2
 icon = ExtResource("3_og6kh")
 flat = true
@@ -247,7 +269,6 @@ flat = true
 [node name="UseCustomNodesToggle" type="CheckButton" parent="MarginContainer/ScrollContainer/VBoxContainer/UseCustomNodes" unique_id=601995962]
 unique_name_in_owner = true
 layout_mode = 2
-button_pressed = true
 
 [node name="CustomNodesFolderWarning" type="RichTextLabel" parent="MarginContainer/ScrollContainer/VBoxContainer" unique_id=1626517227]
 unique_name_in_owner = true

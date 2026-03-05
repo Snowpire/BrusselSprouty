@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://drlmb1kt08wlv"]
+[gd_scene format=3 uid="uid://drlmb1kt08wlv"]
 
 [ext_resource type="Script" uid="uid://buqxffyjrln1a" path="res://addons/sprouty_dialogs/editor/components/scripts/combo_box.gd" id="1_dldon"]
 

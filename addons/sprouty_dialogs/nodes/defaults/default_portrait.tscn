@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://cdj77v25htco0"]
+[gd_scene format=3 uid="uid://cdj77v25htco0"]
 
 [ext_resource type="Script" uid="uid://cs0xh7sfg8qfj" path="res://addons/sprouty_dialogs/nodes/defaults/default_portrait.gd" id="1_jgi4u"]
 
-[node name="DefaultPortrait" type="Node2D"]
+[node name="DefaultPortrait" type="Node2D" unique_id=643783608]
 script = ExtResource("1_jgi4u")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=969352159]

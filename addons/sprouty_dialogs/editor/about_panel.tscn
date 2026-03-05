@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b3ttyn7bfc2v0"]
+[gd_scene format=3 uid="uid://b3ttyn7bfc2v0"]
 
 [ext_resource type="Script" uid="uid://84gckqfa1ts8" path="res://addons/sprouty_dialogs/editor/scripts/about_panel.gd" id="1_mxuji"]
 [ext_resource type="StyleBox" uid="uid://dfa36wxs72oc0" path="res://addons/sprouty_dialogs/editor/theme/empty_panel.tres" id="2_mxuji"]

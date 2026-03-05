@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="SproutyDialogsCharacterData" format=3 uid="uid://du82nkuxnnudy"]
+
+[ext_resource type="Script" uid="uid://kwoapf8il7ee" path="res://addons/sprouty_dialogs/resources/character_data.gd" id="1_a0ynv"]
+[ext_resource type="Script" uid="uid://ygs6blymsjbh" path="res://addons/sprouty_dialogs/resources/portrait_data.gd" id="1_jufq7"]
+
+[sub_resource type="Resource" id="Resource_jufq7"]
+script = ExtResource("1_jufq7")
+portrait_scene_uid = 5906660786903850185
+portrait_scene_path = "res://addons/sprouty_dialogs/demo/portrait.tscn"
+export_overrides = {
+"portrait_image": {
+"type": 4,
+"value": "res://addons/sprouty_dialogs/demo/Godot_icon.png"
+}
+}
+transform_settings = {
+"ignore_main_transform": false,
+"mirror": false,
+"offset": Vector2(0, 0),
+"rotation": 0.0,
+"scale": Vector2(0, 0),
+"scale_lock_ratio": true
+}
+typing_sound = {}
+
+[resource]
+script = ExtResource("1_a0ynv")
+key_name = "character"
+display_name = {
+"default": "Godot",
+"en": ""
+}
+default_portrait = "Godot"
+portraits = {
+"Godot": {
+"data": SubResource("Resource_jufq7"),
+"index": 0
+}
+}

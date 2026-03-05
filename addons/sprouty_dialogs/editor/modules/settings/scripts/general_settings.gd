@@ -19,6 +19,8 @@ extends HSplitContainer
 @onready var _default_portrait_warning: RichTextLabel = %DefaultPortraitWarning
 ## Warning label for default dialog box
 @onready var _default_dialog_box_warning: RichTextLabel = %DefaultDialogBoxWarning
+## Toggle to use popup preview when playing from a start node
+@onready var _start_node_popup_preview_toggle: CheckButton = %StartNodePopupPreviewToggle
 
 ## Dialog box canvas layer field
 @onready var _dialog_box_canvas_layer_field: SpinBox = %DialogBoxCanvasLayerField
@@ -50,6 +52,7 @@ func _ready():
 	_default_dialog_box_field.scene_path_changed.connect(_on_default_dialog_box_path_changed)
 	_default_portrait_scene_field.set_scene_type(_default_portrait_scene_field.SceneType.PORTRAIT)
 	_default_portrait_scene_field.scene_path_changed.connect(_on_default_portrait_scene_path_changed)
+	_start_node_popup_preview_toggle.toggled.connect(_on_start_node_popup_preview_toggled)
 
 	_continue_input_action_field.set_options(InputMap.get_actions().filter(
 		func(action: String) -> bool: # Filter out built-in UI actions
@@ -123,6 +126,11 @@ func _load_settings() -> void:
 		_default_portrait_scene_field.set_scene_path(ResourceUID.get_id_path(default_portrait))
 	_set_reset_button(_default_portrait_scene_field, "default_portrait_scene")
 	_show_reset_button(_default_portrait_scene_field, "default_portrait_scene")
+
+	# Load start-node preview mode
+	_start_node_popup_preview_toggle.button_pressed = \
+			SproutyDialogsSettingsManager.get_setting("start_node_use_popup_preview")
+	_set_reset_button(_start_node_popup_preview_toggle, "start_node_use_popup_preview")
 	
 	# Load Canvas layers settings
 	_dialog_box_canvas_layer_field.value = \
@@ -292,9 +300,15 @@ func _on_default_portrait_scene_path_changed(new_path: String) -> void:
 		_default_portrait_warning.show()
 		return # Ignore empty or invalid paths
 	
-	_default_dialog_box_warning.hide()
+	_default_portrait_warning.hide()
 	SproutyDialogsSettingsManager.set_setting("default_portrait_scene",
 			ResourceSaver.get_resource_id_for_path(new_path, true))
+
+
+## Handle when the start-node popup preview mode is changed
+func _on_start_node_popup_preview_toggled(toggled_on: bool) -> void:
+	SproutyDialogsSettingsManager.set_setting("start_node_use_popup_preview", toggled_on)
+	_show_reset_button(_start_node_popup_preview_toggle, "start_node_use_popup_preview")
 
 
 ## Handle when the dialog box canvas layer is changed

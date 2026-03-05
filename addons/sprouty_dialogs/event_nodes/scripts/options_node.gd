@@ -20,7 +20,7 @@ var _first_option: EditorSproutyDialogsOptionContainer
 
 ## List of options keys
 var _options_keys: Array = []
-
+var _options_conditions: Array = []
 
 func _ready():
 	super ()
@@ -42,6 +42,7 @@ func get_data() -> Dictionary:
 		"node_type": node_type,
 		"node_index": node_index,
 		"options_keys": [],
+		"options_conditions": [],
 		"to_node": get_output_connections(),
 		"offset": position_offset,
 		"size": size
@@ -51,17 +52,20 @@ func get_data() -> Dictionary:
 	for child in get_children():
 		if child is EditorSproutyDialogsOptionContainer:
 			data["options_keys"].insert(child.option_index, child.get_dialog_key())
-	
+			data["options_conditions"].insert(child.option_index, child.get_conditions())
 	return dict
+
 
 
 func set_data(dict: Dictionary) -> void:
 	node_type = dict["node_type"]
 	node_index = dict["node_index"]
 	_options_keys = dict["options_keys"]
+	_options_conditions = dict.get("options_conditions", [])
 	to_node = dict["to_node"]
 	position_offset = dict["offset"]
 	size = dict["size"]
+
 #endregion
 
 
@@ -79,12 +83,18 @@ func get_options_text() -> Array:
 ## Load options text and translations
 func load_options_text(dialogs: Dictionary) -> void:
 	for option in _options_keys.size():
-		if option == 0: # Load the first option
-			_first_option.load_dialogs(dialogs[_options_keys[option]])
+		var option_container: EditorSproutyDialogsOptionContainer
+		if option == 0:
+			option_container = _first_option
 		else:
-			var new_option = _add_new_option()
-			new_option.load_dialogs(dialogs[_options_keys[option]])
+			option_container = _add_new_option()
 
+		option_container.load_dialogs(dialogs[_options_keys[option]])
+
+		if option < _options_conditions.size() and _options_conditions[option] is Dictionary:
+			option_container.load_conditions(_options_conditions[option])
+
+		# check if dialogue has conditions
 
 ## Update the locale text boxes
 func on_locales_changed() -> void:

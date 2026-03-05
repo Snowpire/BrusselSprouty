@@ -1,0 +1,372 @@
+[gd_resource type="Resource" script_class="SproutyDialogsDialogueData" format=3 uid="uid://bk2tmt74bxons"]
+
+[ext_resource type="Script" uid="uid://cbjdca3iwlx36" path="res://addons/sprouty_dialogs/resources/dialogue_data.gd" id="1_vuv4b"]
+
+[resource]
+script = ExtResource("1_vuv4b")
+graph_data = {
+"DEMO": {
+"condition_node_1": {
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": "gold"
+},
+"node_index": 1,
+"node_type": "condition_node",
+"offset": Vector2(1540, 220),
+"operator": 5,
+"second_var": {
+"metadata": {},
+"type": 2,
+"value": 2.0
+},
+"size": Vector2(428.99927, 182.00012),
+"to_node": ["dialogue_node_4", "dialogue_node_3"]
+},
+"dialogue_node_1": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_1",
+"node_index": 1,
+"node_type": "dialogue_node",
+"offset": Vector2(100, 160),
+"portrait": "Godot",
+"size": Vector2(250.001, 394.00018),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_2": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_2",
+"node_index": 2,
+"node_type": "dialogue_node",
+"offset": Vector2(1240, -600),
+"portrait": "Godot",
+"size": Vector2(250.00195, 394),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_3": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_3",
+"node_index": 3,
+"node_type": "dialogue_node",
+"offset": Vector2(2500, 220),
+"portrait": "Godot",
+"size": Vector2(250.00098, 394),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_4": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_4",
+"node_index": 4,
+"node_type": "dialogue_node",
+"offset": Vector2(2020, 580),
+"portrait": "Godot",
+"size": Vector2(250.00244, 394),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_5": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_5",
+"node_index": 5,
+"node_type": "dialogue_node",
+"offset": Vector2(1340, 788.25),
+"portrait": "Godot",
+"size": Vector2(250.00024, 394.00006),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_6": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_6",
+"node_index": 6,
+"node_type": "dialogue_node",
+"offset": Vector2(2040, -260),
+"portrait": "Godot",
+"size": Vector2(250.00116, 394),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_7": {
+"audio_expand": false,
+"audio_path": "",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_7",
+"node_index": 7,
+"node_type": "dialogue_node",
+"offset": Vector2(240, 1320),
+"portrait": "Godot",
+"size": Vector2(250.00055, 394.0006),
+"to_node": ["options_node_2"]
+},
+"dialogue_node_8": {
+"audio_expand": false,
+"audio_path": "res://addons/sprouty_dialogs/demo/doge_goober57-silly-cats-theme-for-games-and-short-videos-186717.mp3",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_8",
+"node_index": 8,
+"node_type": "dialogue_node",
+"offset": Vector2(960, 1280),
+"portrait": "Godot",
+"size": Vector2(250.00006, 394.00006),
+"to_node": ["options_node_1"]
+},
+"dialogue_node_9": {
+"audio_expand": false,
+"audio_path": "res://addons/sprouty_dialogs/demo/ennismore-goofy-ahh-car-horn-200870.mp3",
+"char_expand": true,
+"character": "character",
+"dialog_key": "DEMO_DIALOG_9",
+"node_index": 9,
+"node_type": "dialogue_node",
+"offset": Vector2(879.39716, 1815.6174),
+"portrait": "Godot",
+"size": Vector2(250.00018, 394.00012),
+"to_node": ["options_node_1"]
+},
+"options_node_1": {
+"node_index": 1,
+"node_type": "options_node",
+"offset": Vector2(600, 101.13024),
+"options_conditions": [{
+"enabled": false,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"operator": 0,
+"second_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"visibility": 0
+}, {
+"enabled": true,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": "gold"
+},
+"operator": 5,
+"second_var": {
+"metadata": {},
+"type": 2,
+"value": 2.0
+},
+"visibility": 1
+}, {
+"enabled": false,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"operator": 0,
+"second_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"visibility": 0
+}, {
+"enabled": true,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": "gold"
+},
+"operator": 5,
+"second_var": {
+"metadata": {},
+"type": 2,
+"value": 1.0
+},
+"visibility": 0
+}, {
+"enabled": false,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"operator": 0,
+"second_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"visibility": 0
+}],
+"options_keys": ["DEMO_OPT1_1", "DEMO_OPT1_2", "DEMO_OPT1_3", "DEMO_OPT1_4", "DEMO_OPT1_5"],
+"size": Vector2(252.0003, 659),
+"to_node": ["set_variable_node_1", "dialogue_node_6", "condition_node_1", "dialogue_node_5", "dialogue_node_7"]
+},
+"options_node_2": {
+"node_index": 2,
+"node_type": "options_node",
+"offset": Vector2(560, 1380.2002),
+"options_conditions": [{
+"enabled": false,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"operator": 0,
+"second_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"visibility": 0
+}, {
+"enabled": false,
+"first_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"operator": 0,
+"second_var": {
+"metadata": {},
+"type": 40,
+"value": ""
+},
+"visibility": 0
+}],
+"options_keys": ["DEMO_OPT2_1", "DEMO_OPT2_2"],
+"size": Vector2(250.00049, 311.00043),
+"to_node": ["dialogue_node_8", "dialogue_node_9"]
+},
+"set_variable_node_1": {
+"new_value": 1.0,
+"node_index": 1,
+"node_type": "set_variable_node",
+"offset": Vector2(1120, 0),
+"operator": 1,
+"size": Vector2(536.9978, 77.00012),
+"to_node": ["dialogue_node_2"],
+"var_metadata": {},
+"var_name": "gold",
+"var_type": 2
+},
+"start_node_1": {
+"node_index": 1,
+"node_type": "start_node",
+"offset": Vector2(-280, 240),
+"size": Vector2(190.0004, 97.00012),
+"start_id": "DEMO",
+"to_node": ["dialogue_node_1"]
+}
+},
+"unplugged_nodes": {
+"call_method_node_1": {
+"autoload": "",
+"method": "",
+"node_index": 1,
+"node_type": "call_method_node",
+"offset": Vector2(-173.55873, 543.8198),
+"parameters": [],
+"size": Vector2(264.00015, 194.00003),
+"to_node": ["END"]
+},
+"comment_node_1": {
+"comment_text": "IMPORTANT:To run, 
+go to Variables and
+ create gold | int | 0
+ and click save",
+"node_index": 1,
+"node_type": "comment_node",
+"offset": Vector2(-260, 40),
+"size": Vector2(200.00012, 155.00015)
+}
+}
+}
+dialogs = {
+"DEMO_DIALOG_1": {
+"default": "What do you want to test?",
+"en": ""
+},
+"DEMO_DIALOG_2": {
+"default": "Added! Gold is now {gold}",
+"en": ""
+},
+"DEMO_DIALOG_3": {
+"default": "Not yet!",
+"en": ""
+},
+"DEMO_DIALOG_4": {
+"default": "Yes you do!",
+"en": ""
+},
+"DEMO_DIALOG_5": {
+"default": "Not anymore!",
+"en": ""
+},
+"DEMO_DIALOG_6": {
+"default": "Is now selectable!",
+"en": ""
+},
+"DEMO_DIALOG_7": {
+"default": "What sound?",
+"en": ""
+},
+"DEMO_DIALOG_8": {
+"default": "Drop the beat!",
+"en": ""
+},
+"DEMO_DIALOG_9": {
+"default": "Honk honk!",
+"en": ""
+},
+"DEMO_OPT1_1": {
+"default": "add gold",
+"en": "adding gold"
+},
+"DEMO_OPT1_2": {
+"default": "Striked line",
+"en": "",
+"key": "DEMO_OPT1_2"
+},
+"DEMO_OPT1_3": {
+"default": "is enough gold for hidden?",
+"en": "is enough gold for hidden?"
+},
+"DEMO_OPT1_4": {
+"default": "hidden",
+"en": "hidden"
+},
+"DEMO_OPT1_5": {
+"default": "sound"
+},
+"DEMO_OPT2_1": {
+"default": "Xylophone music!"
+},
+"DEMO_OPT2_2": {
+"default": "Silly car horn!"
+}
+}
+characters = {
+"DEMO": {
+"character": 8632826521041892710
+}
+}

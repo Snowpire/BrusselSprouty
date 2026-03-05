@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://b8xxs0vn7n0fm"]
+
+[ext_resource type="Script" uid="uid://d3o6gbdn6plf2" path="res://addons/sprouty_dialogs/utils/test_scene/dialog_test_popup.gd" id="1_mjva3"]
+
+[node name="DialogTestPopup" type="Window" unique_id=983361101]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+script = ExtResource("1_mjva3")
+
+[node name="PreviewRoot" type="Control" parent="." unique_id=1705386610]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

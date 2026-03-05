@@ -18,6 +18,14 @@ func _enable_plugin() -> void:
 	if not ProjectSettings.has_setting("graph_dialogs/variables/variables"):
 		SproutyDialogsSettingsManager.initialize_default_settings()
 
+	# Ensure newly added settings exist in older projects.
+	if not ProjectSettings.has_setting("graph_dialogs/general/preview/start_node_use_popup_preview"):
+		ProjectSettings.set_setting(
+			"graph_dialogs/general/preview/start_node_use_popup_preview",
+			SproutyDialogsSettingsManager.get_default_setting("start_node_use_popup_preview")
+		)
+		ProjectSettings.save()
+
 
 func _disable_plugin() -> void:
 	remove_autoload_singleton(AUTOLOAD_NAME)

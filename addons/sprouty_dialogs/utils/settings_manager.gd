@@ -53,6 +53,10 @@ static var _settings_paths: Dictionary = {
 		"path": "graph_dialogs/general/custom/custom_event_interpreter",
 		"default": - 1
 	},
+	"start_node_use_popup_preview": {
+		"path": "graph_dialogs/general/preview/start_node_use_popup_preview",
+		"default": false
+	},
 	# --- Text settings --------------------------------------------------------
 	"default_typing_speed": {
 		"path": "graph_dialogs/text/default_typing_speed",

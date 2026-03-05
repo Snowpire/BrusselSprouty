@@ -3,6 +3,8 @@
 class_name DialogPlayer
 extends Node
 
+const PREVIEW_DIALOG_BOX_PATH := "res://addons/sprouty_dialogs/utils/test_scene/preview_dialog_box.tscn"
+
 # -----------------------------------------------------------------------------
 # Sprouty Dialogs Dialog Player
 # -----------------------------------------------------------------------------
@@ -35,6 +37,15 @@ signal dialog_player_stop()
 ## Name of the dialogue data file being played.
 @export_storage var _dialog_file_name: String = ""
 
+# Allows in-window preview instead of in-game. Usefull for quick testing
+# Or if your setup doesn't allow launching from individual scenes.
+var _editor_preview: bool = false
+
+var _dialog_audio_player: AudioStreamPlayer
+
+func set_editor_preview(enabled: bool) -> void:
+	_editor_preview = enabled
+	
 ## Dialogue data resource to play.
 var _dialog_data: SproutyDialogsDialogueData:
 	set(value):
@@ -139,6 +150,7 @@ var _current_portrait: DialogPortrait
 
 ## Next nodes options to process when a dialog option is selected.
 var _next_options: Array = []
+var _current_option_keys: Array = []
 ## Next node to process in the dialog tree after a dialogue node.
 var _next_node: String = ""
 ## Node where the dialog was paused, to resume later.
@@ -270,7 +282,7 @@ func _set(property: StringName, value: Variant) -> bool:
 
 
 func _enter_tree() -> void:
-	if not Engine.is_editor_hint(): # Only run in game
+	if not Engine.is_editor_hint() or _editor_preview: # Only run in game
 		if SproutyDialogsSettingsManager.get_setting("use_custom_event_nodes"):
 			var interpreter_uid = SproutyDialogsSettingsManager.get_setting("custom_event_interpreter")
 			# Use a custom event interpreter
@@ -302,6 +314,11 @@ func _enter_tree() -> void:
 		option_selected.connect(sprouty_dialogs_manager.option_selected.emit)
 		signal_event.connect(sprouty_dialogs_manager.signal_event.emit)
 
+		if _dialog_audio_player == null or not is_instance_valid(_dialog_audio_player):
+			_dialog_audio_player = AudioStreamPlayer.new()
+			_dialog_audio_player.name = "DialogueAudioPlayer"
+			add_child(_dialog_audio_player)
+
 
 func _exit_tree() -> void:
 	if _resource_manager:
@@ -309,7 +326,7 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint():
+	if Engine.is_editor_hint() and not _editor_preview:
 		# In editor, check if the dialogue data resource exists
 		if _dialog_data_uid != -1 and not SproutyDialogsFileUtils.check_valid_uid_path(_dialog_data_uid):
 			printerr("[Sprouty Dialogs] Dialog Player '" + name
@@ -533,32 +550,52 @@ func _process_node(node_name: String) -> void:
 
 
 ## Play dialog when the dialogue node is processed
-func _on_dialogue_processed(character_name: String, translated_name: String,
-		portrait: String, dialog: String, next_node: String) -> void:
+func _on_dialogue_processed(character_name: String,	translated_name: String,
+		portrait: String, dialog: String, audio_path: String, next_node: String) -> void:
 	_next_node = next_node
 	_update_dialog_box(character_name)
 	await _update_portrait(character_name, portrait)
+	_play_dialogue_audio(audio_path)
 	_current_dialog_box.play_dialog(translated_name, dialog)
 
 
 ## Handle when the options node is processed
-func _on_options_processed(options: Array, next_nodes: Array) -> void:
+func _on_options_processed(options: Array, next_nodes: Array, option_keys: Array, disabled_flags: Array) -> void:
 	if not _current_dialog_box:
-		_update_dialog_box("") # Use default dialog box
-	_current_dialog_box.display_options(options)
-	_next_options = next_nodes
+		_update_dialog_box("")
+
+	_next_options = []
+	_current_option_keys = []
+
+	for i in range(options.size()):
+		var is_disabled: bool = i < disabled_flags.size() and bool(disabled_flags[i])
+		if not is_disabled:
+			_next_options.append(next_nodes[i])
+			_current_option_keys.append(option_keys[i])
+
+	_current_dialog_box.display_options(options, disabled_flags)
+
+
 
 
 ## Process the next node of the option selected
 func _on_option_selected(option_index: int) -> void:
+	if option_index < 0 or option_index >= _next_options.size():
+		return
 	_current_dialog_box.hide_options()
-	var option_key = _start_id + "_OPT" \
-			+ _current_node.split("_")[-1] + "_" + str(option_index + 1)
+
+	var option_key = ""
+	if option_index < _current_option_keys.size():
+		option_key = _current_option_keys[option_index]
+	else:
+		option_key = _start_id + "_OPT" + _current_node.split("_")[-1] + "_" + str(option_index + 1)
+
 	var option_dialog = _dialog_data.dialogs[option_key]
 	option_dialog["key"] = option_key
-	
+
 	option_selected.emit(option_index + 1, option_dialog)
 	_process_node(_next_options[option_index])
+
 
 
 ## Emit a signal event when the signal node is processed
@@ -579,15 +616,27 @@ func _on_continue_dialog() -> void:
 ## Update the dialog box for the current character
 func _update_dialog_box(character_name: String) -> void:
 	var dialog_box = null
+	var dialog_box_key = character_name
+	if _editor_preview:
+		dialog_box_key = "__preview__"
 
 	# Check if the dialog box is already loaded
-	if _dialog_box_instances.has(character_name):
-		dialog_box = _dialog_box_instances[character_name]
+	if _dialog_box_instances.has(dialog_box_key):
+		dialog_box = _dialog_box_instances[dialog_box_key]
 	else: # If the dialog box is not loaded, instantiate it
-		dialog_box = _resource_manager.instantiate_dialog_box(
-				character_name, _dialog_box_parents.get(character_name, null))
-		_dialog_box_instances[character_name] = dialog_box
-	
+		if _editor_preview:
+			dialog_box = _instantiate_preview_dialog_box(
+				_dialog_box_parents.get(character_name, _dialog_box_parents.get("", null))
+			)
+		else:
+			dialog_box = _resource_manager.instantiate_dialog_box(
+					character_name, _dialog_box_parents.get(character_name, _dialog_box_parents.get("", null)))
+		_dialog_box_instances[dialog_box_key] = dialog_box
+
+	if dialog_box == null:
+		printerr("[Sprouty Dialogs] Failed to instantiate dialog box for '" + character_name + "'.")
+		return
+
 	# Check if the dialog box is already playing a dialog
 	if _current_dialog_box and dialog_box != _current_dialog_box:
 		_current_dialog_box.stop_dialog() # End the current dialog
@@ -599,12 +648,35 @@ func _update_dialog_box(character_name: String) -> void:
 		dialog_box.dialog_starts.connect(_on_dialog_display_starts)
 		dialog_box.dialog_ends.connect(_on_dialog_display_ends)
 		dialog_box.option_selected.connect(_on_option_selected)
-	
+
 	_current_dialog_box = dialog_box
+
+func _instantiate_preview_dialog_box(parent_node: Node) -> DialogBox:
+	var preview_scene: PackedScene = load(PREVIEW_DIALOG_BOX_PATH)
+	if preview_scene == null:
+		printerr("[Sprouty Dialogs] Cannot load preview dialog box scene: " + PREVIEW_DIALOG_BOX_PATH)
+		return null
+
+	var dialog_box := preview_scene.instantiate() as DialogBox
+	if dialog_box == null:
+		printerr("[Sprouty Dialogs] Preview dialog box scene root must extend DialogBox.")
+		return null
+
+	if parent_node:
+		parent_node.add_child(dialog_box)
+	else:
+		_resource_manager._dialog_boxes_canvas.add_child(dialog_box)
+
+	return dialog_box
+
 
 
 ## Update the portrait for the current character
 func _update_portrait(character_name: String, portrait_name: String) -> void:
+	if _editor_preview:
+		_current_portrait = null
+		return
+
 	if character_name.is_empty() or portrait_name.is_empty():
 		_current_portrait = null
 		return
@@ -621,7 +693,7 @@ func _update_portrait(character_name: String, portrait_name: String) -> void:
 
 	else: # Instantiate the portrait scene if not already loaded
 		_current_portrait = _resource_manager.instantiate_portrait(character_name,
-		portrait_name, _portrait_parents.get(character_name, null), _current_dialog_box)
+		portrait_name, _portrait_parents.get(character_name, _portrait_parents.get("", null)), _current_dialog_box)
 		_portraits_instances[character_name][portrait_name] = _current_portrait
 	
 	if _current_portrait:
@@ -658,3 +730,22 @@ func _on_dialog_typing_ends() -> void:
 		_current_portrait.on_portrait_stop_talking()
 
 #endregion
+
+#region === Audio management =================================
+
+func _play_dialogue_audio(audio_path: String) -> void:
+	if _dialog_audio_player == null or not is_instance_valid(_dialog_audio_player):
+		return
+
+	var path := audio_path.strip_edges()
+	if path.is_empty():
+		_dialog_audio_player.stop()
+		return
+
+	var stream = load(path)
+	if stream is AudioStream:
+		_dialog_audio_player.stop()
+		_dialog_audio_player.stream = stream
+		_dialog_audio_player.play()
+	elif _print_debug:
+		printerr("[Sprouty Dialogs] Invalid dialogue audio stream: " + path)

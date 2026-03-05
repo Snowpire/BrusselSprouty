@@ -10,6 +10,7 @@ extends Control
 ## Emitted when the graph editor is visible
 signal graph_editor_visible(visible: bool)
 
+
 ## Emitted when the new dialog file button is pressed
 signal new_dialog_file_pressed
 ## Emitted when the open dialog file button is pressed
@@ -17,8 +18,10 @@ signal open_dialog_file_pressed
 
 ## Emitted when is requesting to open a character file
 signal open_character_file_request(path: String)
-## Emitted when is requesting to play a dialog from a start node
+## Emitted when is requesting to play a dialog from menu bar
 signal play_dialog_request(start_id: String)
+## Emitted when is requesting to play a dialog from a start node
+signal play_dialog_popup_request(start_id: String)
 
 ## Emitted when the translation settings changes
 signal translation_enabled_changed(enabled: bool)
@@ -79,6 +82,7 @@ func switch_current_graph(new_graph: EditorSproutyDialogsGraphEditor) -> void:
 		new_graph.update_text_editor.connect(_text_editor.update_text_editor)
 		new_graph.open_character_file_request.connect(open_character_file_request.emit)
 		new_graph.play_dialog_request.connect(play_dialog_request.emit)
+		new_graph.play_dialog_popup_request.connect(play_dialog_popup_request.emit)
 		new_graph.toolbar_expanded.connect(_on_toolbar_expanded)
 		new_graph.nodes_selection_changed.connect(_graph_toolbar.update_node_options)
 		new_graph.paste_selection_changed.connect(_graph_toolbar.update_paste_button)

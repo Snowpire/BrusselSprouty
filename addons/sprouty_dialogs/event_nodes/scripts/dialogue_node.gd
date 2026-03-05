@@ -26,6 +26,9 @@ signal update_text_editor(text_box: TextEdit)
 ## Text boxes container for translations
 @onready var _translation_boxes: EditorSproutyDialogsTranslationsContainer = %Translations
 
+@onready var _audio_expand_button: Button = get_node_or_null("%AudioExpandButton")
+@onready var _audio_field: EditorSproutyDialogsFileField = get_node_or_null("%AudioField")
+
 ## Default locale for dialog text
 var _default_locale: String = ""
 ## Flag to indicate if translations are enabled
@@ -50,6 +53,8 @@ var _previous_portrait_index: int = 0
 var _collapse_up_icon = preload("res://addons/sprouty_dialogs/editor/icons/interactable/collapse-up.svg")
 var _collapse_down_icon = preload("res://addons/sprouty_dialogs/editor/icons/interactable/collapse-down.svg")
 
+var _audio_path: String = ""
+var _audio_path_modified: bool = false
 
 func _ready():
 	super ()
@@ -68,6 +73,19 @@ func _ready():
 	_portrait_dropdown.item_selected.connect(_on_portrait_selected)
 	_character_expand_button.toggled.connect(_on_expand_character_button_toggled)
 	
+	# Connect signals for audio
+	if is_instance_valid(_audio_expand_button):
+		_audio_expand_button.toggled.connect(_on_expand_audio_button_toggled)
+	else:
+		push_warning("[Sprouty Dialogs] DialogueNode is missing AudioExpandButton. Audio UI will not be interactive.")
+	if is_instance_valid(_audio_field):
+		_audio_field.path_submitted.connect(_on_audio_path_submitted)
+		_audio_field.field_focus_exited.connect(_on_audio_focus_exited)
+		_audio_field.set_value(_audio_path)
+	else:
+		push_warning("[Sprouty Dialogs] DialogueNode is missing AudioField. Audio path editing is unavailable.")
+
+	# Translation boxes
 	_translation_boxes.undo_redo = undo_redo
 	_set_translation_text_boxes()
 	_set_character_picker()
@@ -85,10 +103,13 @@ func get_data() -> Dictionary:
 		"character": get_character_name(),
 		"portrait": get_portrait(),
 		"char_expand": _character_expand_button.button_pressed,
+		"audio_path": _audio_path,
+		"audio_expand": _audio_expand_button.button_pressed if is_instance_valid(_audio_expand_button) else false,
 		"to_node": get_output_connections(),
 		"offset": position_offset,
 		"size": size
 	}
+
 	return dict
 
 
@@ -100,6 +121,9 @@ func set_data(dict: Dictionary) -> void:
 	_character_expand_button.button_pressed = dict["char_expand"]
 	position_offset = dict["offset"]
 	size = dict["size"]
+	if is_instance_valid(_audio_expand_button):
+		_audio_expand_button.button_pressed = dict.get("audio_expand", false)
+	load_audio(dict.get("audio_path", ""))
 
 #endregion
 
@@ -391,3 +415,49 @@ func _on_default_focus_exited() -> void:
 		modified.emit(true)
 
 #endregion
+
+#region === Audio ============================================================
+
+func get_audio_path() -> String:
+	return _audio_path
+
+
+func load_audio(path: String) -> void:
+	_audio_path = path.strip_edges()
+	if is_instance_valid(_audio_field):
+		_audio_field.set_value(_audio_path)
+
+
+func _on_audio_path_submitted(path: String) -> void:
+	path = path.strip_edges()
+	if _audio_path == path:
+		return
+
+	var previous := _audio_path
+	_audio_path = path
+	_audio_path_modified = true
+
+	undo_redo.create_action("Set Dialogue Audio")
+	undo_redo.add_do_property(self, "_audio_path", _audio_path)
+	undo_redo.add_do_method(_audio_field, "set_value", _audio_path)
+	undo_redo.add_undo_property(self, "_audio_path", previous)
+	undo_redo.add_undo_method(_audio_field, "set_value", previous)
+	undo_redo.add_do_method(self, "emit_signal", "modified", true)
+	undo_redo.add_undo_method(self, "emit_signal", "modified", false)
+	undo_redo.commit_action(false)
+
+
+func _on_audio_focus_exited() -> void:
+	if _audio_path_modified:
+		_audio_path_modified = false
+		modified.emit(true)
+
+
+func _on_expand_audio_button_toggled(toggled_on: bool) -> void:
+	var content = get_node_or_null("AudioContainer/Content")
+	if content:
+		content.visible = toggled_on
+	if is_instance_valid(_audio_expand_button):
+		_audio_expand_button.icon = _collapse_up_icon if toggled_on else _collapse_down_icon
+	position_offset.y += -size.y / 4 if toggled_on else size.y / 4
+	_on_resized()
