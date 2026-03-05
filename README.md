@@ -2,6 +2,8 @@
 
 This is my fork of Sprouty Dialogs, which I jokingly named **BrusselSprouty**.
 
+Video demonstration of these changes: https://www.youtube.com/watch?v=C5QDLfP2eKY
+
 Original project: [Sprouty Dialogs](https://github.com/SproutyLabs/SproutyDialogs)
 
 ### Main additions
@@ -32,7 +34,7 @@ Original project: [Sprouty Dialogs](https://github.com/SproutyLabs/SproutyDialog
    - It works when a scene starts using the start node.
    - Because it is an out-of-game debug preview, it cannot call methods outside Sprouty; instead it shows cloned dummy values when external calls are attempted.
 
-Video demonstration of these changes: https://www.youtube.com/watch?v=C5QDLfP2eKY
+
 
 ### Extra content
 
