@@ -1,3 +1,54 @@
+## BrusselSprouty Fork Changes
+
+This is my fork of Sprouty Dialogs, which I jokingly named **BrusselSprouty**.
+
+Original project: [Sprouty Dialogs](https://github.com/SproutyLabs/SproutyDialogs)
+
+### Main additions
+<div align="center">
+ <img width="20%" alt="Option node conditionals" src="option node.png" />
+</div>
+
+1. **Option nodes now support optional conditionals**
+   - You can hide or gray out options until the player meets specific conditions.
+   - Useful for hidden/unavailable quests and progression-gated choices.
+
+<div align="center">
+ <img width="20%" alt="Audio field in dialogue node" src="Screenshot 2026-03-05 134013.png" />
+</div>
+2. **Dialogue nodes now include an audio field**
+   - Supports voice acting, music, and sound effects.
+<div align="center">
+ <img width="70%" alt="Debug player flow log" src="Screenshot 2026-03-05 134043.png" />
+ </div>
+ <div align="center">
+ <img width="70%" alt="Alternative dialogue box" src="Screenshot 2026-03-05 134628.png" />
+</div>
+3. **Alternative debug preview player**
+   - Shows variables currently in play and a flow log.
+   - Activate it in `Settings > Start Node Debug Player`.
+   - It works when a scene starts using the start node.
+   - Because it is an out-of-game debug preview, it cannot call methods outside Sprouty; instead it shows cloned dummy values when external calls are attempted.
+
+Video demonstration of these changes: https://www.youtube.com/watch?v=C5QDLfP2eKY
+
+### Extra content
+
+ <img width="70%" alt="Debug preview and variables" src="Screenshot 2026-03-05 133911.png" />
+- Added `demo.tres` so you can quickly test the changes.
+- Added an alternative default dialogue box for scrolling dialogue with history.
+
+### Additional fixes and changes
+
+1. Integers are now displayed as `1` instead of `1.0`.
+2. Added support for `StringName` parameters in Call Method node fields.
+3. Updated `variable_manager.gd` so `autoload.method(...)` is parsed as an expression, while `autoload.property` remains property access.
+4. In `variable_manager.gd`, replaced `if not result` with `if result == null`. The previous check caused evaluation to fail in cases where it should return `false`.
+5. Updated connection traversal to support recursive loops without crashing or overflowing; `graph_editor.gd` now stops recursion when a node has already been visited.
+
+## Original readme below
+
+
 <div align="center">
 <img alt="Logo" src="https://github.com/SproutyLabs/SproutyDialogs/blob/main/icon.svg" />
 <h1 align="center"> Sprouty Dialogs </h1>
@@ -43,58 +94,6 @@ _Follow my game on Itch.io! (It's on early stages yet)_
 <p align="center">
 <a target="_blank" href="https://kazymila.itch.io/one-cake-day"><img width="600px" alt="one_cake_day_banner" src="https://img.itch.zone/aW1nLzIwNDg0NDcyLmdpZg==/original/qLsQve.gif" /></a>
 </p>
-
-## BrusselSprouty Fork Changes
-
-This is my fork of Sprouty Dialogs, which I jokingly named **BrusselSprouty**.
-
-Original project: [Sprouty Dialogs](https://github.com/SproutyLabs/SproutyDialogs)
-
-### Main additions
-
-1. **Option nodes now support optional conditionals**
-   - You can hide or gray out options until the player meets specific conditions.
-   - Useful for hidden/unavailable quests and progression-gated choices.
-
-2. **Dialogue nodes now include an audio field**
-   - Supports voice acting, music, and sound effects.
-
-3. **Alternative debug preview player**
-   - Shows variables currently in play and a flow log.
-   - Activate it in `Settings > Start Node Debug Player`.
-   - It works when a scene starts using the start node.
-   - Because it is an out-of-game debug preview, it cannot call methods outside Sprouty; instead it shows cloned dummy values when external calls are attempted.
-
-Video demonstration of these changes: https://www.youtube.com/watch?v=C5QDLfP2eKY
-
-### Extra content
-
-- Added `demo.tres` so you can quickly test the changes.
-- Added an alternative default dialogue box for scrolling dialogue with history.
-
-### Additional fixes and improvements
-
-1. Integers are now displayed as `1` instead of `1.0`.
-2. Added support for `StringName` parameters in Call Method node fields.
-3. Updated `variable_manager.gd` so `autoload.method(...)` is parsed as an expression, while `autoload.property` remains property access.
-4. In `variable_manager.gd`, replaced `if not result` with `if result == null`. The previous check caused evaluation to fail in cases where it should return `false`.
-5. Updated connection traversal to support recursive loops without crashing or overflowing; `graph_editor.gd` now stops recursion when a node has already been visited.
-
-### Fork screenshots
-
-<div align="center">
- <img width="49%" alt="Option node conditionals" src="option node.png" />
- <img width="49%" alt="Debug preview and variables" src="Screenshot 2026-03-05 133911.png" />
-</div>
-
-<div align="center">
- <img width="49%" alt="Audio field in dialogue node" src="Screenshot 2026-03-05 134013.png" />
- <img width="49%" alt="Debug player flow log" src="Screenshot 2026-03-05 134043.png" />
-</div>
-
-<div align="center">
- <img width="70%" alt="Alternative dialogue box" src="Screenshot 2026-03-05 134628.png" />
-</div>
 
 ## Installation
 
