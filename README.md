@@ -16,14 +16,16 @@ Original project: [Sprouty Dialogs](https://github.com/SproutyLabs/SproutyDialog
 <div align="center">
  <img width="20%" alt="Audio field in dialogue node" src="Screenshot 2026-03-05 134013.png" />
 </div>
+
 2. **Dialogue nodes now include an audio field**
    - Supports voice acting, music, and sound effects.
+
+
 <div align="center">
  <img width="70%" alt="Debug player flow log" src="Screenshot 2026-03-05 134043.png" />
  </div>
- <div align="center">
- <img width="70%" alt="Alternative dialogue box" src="Screenshot 2026-03-05 134628.png" />
-</div>
+ <img width="70%" alt="Debug preview and variables" src="Screenshot 2026-03-05 133911.png" />
+
 3. **Alternative debug preview player**
    - Shows variables currently in play and a flow log.
    - Activate it in `Settings > Start Node Debug Player`.
@@ -34,10 +36,12 @@ Video demonstration of these changes: https://www.youtube.com/watch?v=C5QDLfP2eK
 
 ### Extra content
 
- <img width="70%" alt="Debug preview and variables" src="Screenshot 2026-03-05 133911.png" />
+ <div align="center">
+ <img width="70%" alt="Alternative dialogue box" src="Screenshot 2026-03-05 134628.png" />
+</div>
+
 - Added `demo.tres` so you can quickly test the changes.
 - Added an alternative default dialogue box for scrolling dialogue with history.
-
 ### Additional fixes and changes
 
 1. Integers are now displayed as `1` instead of `1.0`.
