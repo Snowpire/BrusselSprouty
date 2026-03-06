@@ -55,7 +55,7 @@ func get_variables_data() -> Dictionary:
 ## If the variable is found, it returns a dictionary with its data.
 ## If the variable does not exist, it returns an empty dictionary.
 func get_variable_data(name: String) -> Dictionary:
-	if _variables.has(name): # If the variable is a directly in the dictionary
+	if _variables.has(name): # If the variable is directly in the dictionary
 		var variable = _variables[name]
 		if variable.has("variables"):
 			return {} # Is a group, not variable
@@ -81,28 +81,42 @@ func get_variable_data(name: String) -> Dictionary:
 						"value": current_group[part].value,
 						"metadata": current_group[part].metadata
 					}
-	elif "." in name: # If the variable is in an autoload
+	elif "." in name: # If the variable might be in an autoload
 		var from = name.get_slice(".", 0)
+		var variable_name = name.substr(from.length() + 1)
+
+		# If this looks like a method/expression, let expression parser handle it
+		if variable_name.contains("(") or variable_name.contains(")"):
+			return {}
+
 		var autoloads = _get_autoloads()
 		if autoloads.has(from):
-			var variable_name = name.get_slice(".", 1)
-			var prop = null
-			for p in autoloads[from].script.get_script_property_list():
-				if p["name"] == variable_name:
-					prop = p
+			var autoload = autoloads[from]
+			var script = autoload.get_script()
+			if script == null:
+				return {}
+			var prop_info: Dictionary = {}
+
+			for p in script.get_script_property_list():
+				if p.has("name") and p["name"] == variable_name:
+					prop_info = p
 					break
-			if prop:
-				return {
-					"index": 0,
-					"name": variable_name,
-					"type": prop["type"],
-					"value": autoloads[from].get(variable_name),
-					"metadata": {
-						"hint": prop["hint"],
-						"hint_string": prop["hint_string"]
-					}
+
+			if prop_info.is_empty():
+				return {}
+
+			return {
+				"index": 0,
+				"name": variable_name,
+				"type": prop_info.get("type", TYPE_NIL),
+				"value": autoload.get(variable_name),
+				"metadata": {
+					"hint": prop_info.get("hint", PROPERTY_HINT_NONE),
+					"hint_string": prop_info.get("hint_string", "")
 				}
+			}
 	return {}
+
 
 
 ## Get the value of a variable defined in the variable editor or from the autoloads.
@@ -188,7 +202,7 @@ func get_variables_in_group(group_name: String) -> Array:
 			return []
 	# Fallback, no group found
 	printerr("[Sprouty Dialogs] Cannot get variables from group '" + group_name \
-		+ "'. Group not found, please check the variable editor.")
+		+"'. Group not found, please check the variable editor.")
 	return []
 
 
@@ -249,7 +263,7 @@ func parse_variables(text: String, ignore_error: bool = false) -> String:
 		for var_name in results:
 			var parsed_variable = _get_parsed_variable(var_name, ignore_error)
 			if parsed_variable:
-				text = text.replace("{" + var_name + "}", str(parsed_variable.value))
+				text = text.replace("{" + var_name + "}", _format_variable_text_value(parsed_variable))
 				remains.erase(var_name)
 				
 		# Check if there are still unparsed variables
@@ -262,6 +276,17 @@ func parse_variables(text: String, ignore_error: bool = false) -> String:
 		if not post_results.is_empty(): # Recursively parse remaining variables
 			text = parse_variables(text, ignore_error)
 	return text
+
+
+func _format_variable_text_value(variable: Dictionary) -> String:
+	var value = variable.get("value", null)
+	var value_type = int(variable.get("type", TYPE_NIL))
+
+	if value_type == TYPE_INT:
+		if value is float or value is int:
+			return str(int(value))
+
+	return str(value)
 
 
 ## Gets the value of a variable or expression.
@@ -277,7 +302,7 @@ func _get_parsed_variable(var_name: String, ignore_error: bool = false,
 					variable.metadata["hint"] == PROPERTY_HINT_EXPRESSION:
 				var result = _execute_expression(variable.value, ignore_error)
 				
-				if not result: # Error evaluating expression
+				if result == null: # Error evaluating expression
 					if not ignore_error:
 						printerr("[Sprouty Dialogs] Error evaluating expression of variable '" +
 							var_name + "': " + str(variable.value))
@@ -294,7 +319,7 @@ func _get_parsed_variable(var_name: String, ignore_error: bool = false,
 	
 	elif not only_parse_var: # Try to execute as expression
 		var result = _execute_expression(var_name, ignore_error)
-		if not result: # Error evaluating expression
+		if result == null: # Error evaluating expression
 			if not ignore_error:
 				printerr("[Sprouty Dialogs] Cannot found variable or parse {"
 						+ var_name + "} as expression. ")
@@ -393,7 +418,7 @@ func get_comparison_result(first_var: Dictionary, second_var: Dictionary,
 		if first_var.type != second_var.type: # If types do not match, cannot compare
 			printerr("[Sprouty Dialogs] Cannot compare variables of type '" +
 				type_string(first_var.type) + "' and '" + type_string(second_var.type) + "'." \
-				+ " Values '" + str(first_var.value) + "' and '" + str(second_var.value) + "' are not comparable.")
+				+" Values '" + str(first_var.value) + "' and '" + str(second_var.value) + "' are not comparable.")
 			return null
 
 	match operator:
@@ -416,7 +441,7 @@ func get_comparison_result(first_var: Dictionary, second_var: Dictionary,
 
 ## Parses a variable data dictionary to get its actual value for condition checking.
 func _parse_condition_value(var_data: Dictionary) -> Variant:
-	var parse_var = var_data
+	var parse_var: Dictionary = var_data.duplicate(true)
 	match var_data.type:
 		TYPE_STRING:
 			# Expression type
@@ -443,5 +468,4 @@ func _parse_condition_value(var_data: Dictionary) -> Variant:
 		_:
 			return var_data
 	return parse_var
-
 #endregion
