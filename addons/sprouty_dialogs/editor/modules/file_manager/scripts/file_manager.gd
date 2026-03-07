@@ -34,6 +34,8 @@ signal all_character_files_closed
 @onready var open_file_dialog: FileDialog = $PopupDialogs/OpenFile
 ## Save file dialog
 @onready var save_file_dialog: FileDialog = $PopupDialogs/SaveFile
+## Close editor warning dialog
+@onready var _close_editor_warning: AcceptDialog = %CloseEditorWarning
 
 ## File list manager
 @onready var _file_list: Control = $FileList
@@ -48,11 +50,24 @@ var _new_char_icon := preload("res://addons/sprouty_dialogs/editor/icons/add-cha
 var _graph_scene := preload("res://addons/sprouty_dialogs/editor/modules/graph_editor/graph_editor.tscn")
 var _char_scene := preload("res://addons/sprouty_dialogs/editor/modules/characters/character_editor.tscn")
 
+## Save shortcut (Command/Ctrl-S)
+var _save_shortcut: Shortcut = Shortcut.new()
+
+## Editor main reference
+var plugin_editor: Control = null
+
 ## UndoRedo manager
 var undo_redo: EditorUndoRedoManager
 
 
 func _ready() -> void:
+	# Set save shortcut
+	var key_event = InputEventKey.new()
+	key_event.keycode = KEY_S
+	key_event.ctrl_pressed = true
+	key_event.command_or_control_autoremap = true
+	_save_shortcut.events = [key_event]
+
 	# Connect signals
 	_new_dialog_button.pressed.connect(on_new_dialog_pressed)
 	_new_char_button.pressed.connect(on_new_character_pressed)
@@ -68,7 +83,17 @@ func _ready() -> void:
 	_file_list.request_save_file.connect(save_file)
 	_file_list.request_save_file_as.connect(save_file_dialog.popup_centered)
 
+	_close_editor_warning.custom_action.connect(_on_confirm_closing_editor_action)
+	_close_editor_warning.canceled.connect(func(): return null)
+
 	_csv_file_field.path_changed.connect(_on_csv_file_path_changed)
+
+	# Set confirm closing editor dialog actions
+	_close_editor_warning.get_ok_button().hide()
+	_close_editor_warning.add_button("Save files", true, "save_files")
+	_close_editor_warning.add_button("Don't Save & Quit", true, "discard_files")
+	_close_editor_warning.add_cancel_button("Cancel")
+	_close_editor_warning.exclusive = false
 
 	# Set icons for buttons
 	_save_file_button.icon = get_theme_icon("Save", "EditorIcons")
@@ -87,6 +112,22 @@ func _ready() -> void:
 
 	await get_tree().process_frame # Wait a frame to ensure undo_redo is ready
 	_file_list.undo_redo = undo_redo
+
+
+func _input(event: InputEvent) -> void:
+	# Capture save shortcut (Command/Ctrl-S)
+	if _save_shortcut.matches_event(event) and event.is_pressed() and not event.is_echo():
+		if plugin_editor.visible and plugin_editor.tab_container.current_tab < 2 \
+				and not _file_list.get_current_index() < 0:
+			save_file() # Save current file
+			get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	# Display warning when editor is closed
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if _file_list.has_unsaved_files():
+			_close_editor_warning.popup_centered()
 
 
 ## Returns the current open file path
@@ -388,3 +429,14 @@ func on_translation_enabled_changed(_enabled: bool = false) -> void:
 			_csv_file_field.set_value(csv_path)
 			_csv_file_field.get_parent().show()
 			data.data.csv_file_uid = ResourceSaver.get_resource_id_for_path(csv_path, true)
+
+
+## Handle the confirm closing editor dialog actions
+func _on_confirm_closing_editor_action(action) -> void:
+	_close_editor_warning.hide()
+	match action:
+		"save_files": # Save all files
+			for index in _file_list.get_item_count():
+				save_file(index)
+		"discard_files":
+			get_tree().quit()
