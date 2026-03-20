@@ -39,8 +39,9 @@ var _variables: Dictionary = {}
 
 
 func _enter_tree() -> void:
-	if not Engine.is_editor_hint():
-		get_variables_data() # Load variables in game
+	if Engine.is_editor_hint(): # Wait a frame to ensure settings are loaded
+		await get_tree().process_frame
+	get_variables_data()
 
 
 ## Returns all the variables data as a dictionary.
