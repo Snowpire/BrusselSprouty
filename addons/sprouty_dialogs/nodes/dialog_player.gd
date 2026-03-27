@@ -465,15 +465,14 @@ func start() -> void:
 	_jump_stack.clear()
 	
 	# Search for start node and start processing from there
-	var start_node = _get_start_node_name(_start_id)
-	if start_node.is_empty():
-		printerr("[Sprouty Dialogs] No start node found for dialog ID '" + _start_id + "'.")
-		return
-	if _print_debug:
-		print("[Sprouty Dialogs] Starting dialog with ID: " + _start_id)
-	_is_running = true
-	_process_node(start_node)
-	dialog_started.emit()
+	for node in _dialog_data.graph_data[_start_id]:
+		if node.contains("start_node"):
+			if _print_debug:
+				print("[Sprouty Dialogs] Starting dialog with ID: " + _start_id)
+			_is_running = true
+			_process_node(node)
+			dialog_started.emit()
+			break
 
 
 ## Pause processing the dialog tree
