@@ -27,6 +27,8 @@ signal dialogue_processed(
 signal options_processed(options: Array, next_nodes: Array, option_keys: Array, disabled_flags: Array)
 ## Emitted when a signal node was processed.
 signal signal_processed(signal_id: String, args: Array, next_node: String)
+## Emitted when a jump node was processed.
+signal jump_to_node(start_node: String, start_id: String, return_node: String)
 
 ## Node processors reference dictionary.
 ## This dictionary maps the node type to its processing method.
@@ -39,7 +41,8 @@ var node_processors: Dictionary = {
 	"set_variable_node": _process_set_variable,
 	"signal_node": _process_signal,
 	"wait_node": _process_wait,
-	"call_method_node": _process_call_method
+	"call_method_node": _process_call_method,
+	"jump_to_node": _process_jump_to
 }
 ## # If true, will print debug messages to the console
 var print_debug: bool = true
@@ -202,3 +205,39 @@ func _process_wait(node_data: Dictionary) -> void:
 	if print_debug: print("[Sprouty Dialogs] Processing wait node...")
 	await get_tree().create_timer(node_data.wait_time).timeout
 	continue_to_node.emit(node_data.to_node[0])
+
+
+func _process_jump_to(node_data: Dictionary) -> void:
+	if print_debug: print("[Sprouty Dialogs] Processing jump to node...")
+
+	var target_id := str(node_data.get("to_id", "")).to_upper()
+	var return_node := "END"
+	if node_data.has("to_node") and node_data["to_node"].size() > 0:
+		return_node = node_data["to_node"][0]
+	var dialog_data: SproutyDialogsDialogueData = get_parent().get_dialog_data()
+
+	if target_id.is_empty() or dialog_data == null:
+		push_warning("[Sprouty Dialogs] Jump To Node #" + str(node_data.node_index)
+			+ " does not have a valid target ID.")
+		continue_to_node.emit(return_node)
+		return
+
+	if not dialog_data.graph_data.has(target_id):
+		push_warning("[Sprouty Dialogs] Jump To Node #" + str(node_data.node_index)
+			+ " cannot find dialog branch '" + target_id + "'.")
+		continue_to_node.emit(return_node)
+		return
+
+	var start_node := ""
+	for node_name in dialog_data.graph_data[target_id].keys():
+		if dialog_data.graph_data[target_id][node_name].get("node_type", "") == "start_node":
+			start_node = node_name
+			break
+
+	if start_node.is_empty():
+		push_warning("[Sprouty Dialogs] Jump To Node #" + str(node_data.node_index)
+			+ " cannot find a start node for dialog branch '" + target_id + "'.")
+		continue_to_node.emit(return_node)
+		return
+
+	jump_to_node.emit(start_node, target_id, return_node)

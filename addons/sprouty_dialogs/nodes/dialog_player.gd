@@ -146,6 +146,10 @@ var _next_node: String = ""
 var _next_node_dialog: String = ""
 ## Node where the dialog was paused, to resume later.
 var _paused_node: String = ""
+## Stack of jump return frames.
+var _jump_stack: Array[Dictionary] = []
+## Loaded dialog branches that still need their resources released.
+var _loaded_dialog_ids: Array[String] = []
 ## Current node being processing
 var _current_node: String = ""
 
@@ -287,6 +291,7 @@ func _enter_tree() -> void:
 		_dialog_interpreter.dialogue_processed.connect(_on_dialogue_processed)
 		_dialog_interpreter.options_processed.connect(_on_options_processed)
 		_dialog_interpreter.signal_processed.connect(_on_signal_processed)
+		_dialog_interpreter.jump_to_node.connect(_on_jump_to_node)
 		_dialog_interpreter.print_debug = _print_debug
 		add_child(_dialog_interpreter)
 
@@ -307,8 +312,7 @@ func _enter_tree() -> void:
 
 
 func _exit_tree() -> void:
-	if _resource_manager:
-		_resource_manager.release_resources(_dialog_data, _start_id)
+	_release_dialog_resources()
 
 
 func _ready() -> void:
@@ -330,7 +334,7 @@ func _ready() -> void:
 		if _starts_ids.has(_start_id):
 			if not _resource_manager.is_node_ready():
 				await _resource_manager.ready
-			_resource_manager.load_resources(_dialog_data, _start_id)
+			_load_dialog_resources(_start_id)
 			# Start processing the dialog tree if the play on ready is enabled
 			if _play_on_ready:
 				start()
@@ -364,6 +368,41 @@ func get_start_id() -> String:
 	return _start_id
 
 
+## Returns the name of the start node for a given dialog branch.
+func _get_start_node_name(dialog_id: String) -> String:
+	if not _dialog_data or not _dialog_data.graph_data.has(dialog_id):
+		return ""
+	for node_name in _dialog_data.graph_data[dialog_id].keys():
+		if _dialog_data.graph_data[dialog_id][node_name]["node_type"] == "start_node":
+			return node_name
+	return ""
+
+
+## Load the resources for a given dialog branch.
+func _load_dialog_resources(dialog_id: String) -> void:
+	if not _dialog_data or not _starts_ids.has(dialog_id):
+		return
+	_resource_manager.load_resources(_dialog_data, dialog_id)
+	_loaded_dialog_ids.append(dialog_id)
+	for node in _dialog_data.graph_data[dialog_id].keys():
+		if _dialog_data.graph_data[dialog_id][node].has("to_dialog"):
+			# If the node has a reference to another dialog, load its resources too
+			var to_dialog = _dialog_data.graph_data[dialog_id][node]["to_dialog"]
+			if to_dialog != "" and to_dialog != dialog_id:
+				_resource_manager.load_resources(_dialog_data, to_dialog)
+				_loaded_dialog_ids.append(to_dialog)
+
+
+## Release all resources that were loaded for the active dialog branches.
+func _release_dialog_resources() -> void:
+	if not _resource_manager or not _dialog_data:
+		_loaded_dialog_ids.clear()
+		return
+	for dialog_id in _loaded_dialog_ids:
+		_resource_manager.release_resources(_dialog_data, dialog_id)
+	_loaded_dialog_ids.clear()
+
+
 ## Returns character data for a given character key name
 func get_character_data(key_name: String) -> SproutyDialogsCharacterData:
 	if _resource_manager:
@@ -391,8 +430,10 @@ func set_dialog(data: SproutyDialogsDialogueData, start_id: String,
 	if not data:
 		printerr("[Sprouty Dialogs] No dialogue data provided to set.")
 		return
+	_release_dialog_resources()
 	_dialog_data = data
 	_start_id = start_id
+	_jump_stack.clear()
 
 	if not _starts_ids.has(_start_id): # Check if the dialog with given id exists
 		printerr("[Sprouty Dialogs] Cannot find'" + _start_id + "'ID on dialogue data.")
@@ -406,14 +447,7 @@ func set_dialog(data: SproutyDialogsDialogueData, start_id: String,
 		_dialog_box_parents = dialog_box_parents
 	
 	# Load the resources
-	_resource_manager.load_resources(_dialog_data, _start_id)
-
-	for node in _dialog_data.graph_data[_start_id].keys():
-		if _dialog_data.graph_data[_start_id][node].has("to_dialog"):
-			# If the node has a reference to another dialog, load its resources too
-			var to_dialog = _dialog_data.graph_data[_start_id][node]["to_dialog"]
-			if to_dialog != "" and to_dialog != _start_id:
-				_resource_manager.load_resources(_dialog_data, to_dialog)
+	_load_dialog_resources(_start_id)
 
 
 #region === Run dialog =========================================================
@@ -428,16 +462,18 @@ func start() -> void:
 	if not _starts_ids.has(_start_id): # Check if the dialog with given id exists
 		printerr("[Sprouty Dialogs] Cannot find'" + _start_id + "'ID on dialogue data.")
 		return
+	_jump_stack.clear()
 	
 	# Search for start node and start processing from there
-	for node in _dialog_data.graph_data[_start_id]:
-		if node.contains("start_node"):
-			if _print_debug:
-				print("[Sprouty Dialogs] Starting dialog with ID: " + _start_id)
-			_is_running = true
-			_process_node(node)
-			dialog_started.emit()
-			break
+	var start_node = _get_start_node_name(_start_id)
+	if start_node.is_empty():
+		printerr("[Sprouty Dialogs] No start node found for dialog ID '" + _start_id + "'.")
+		return
+	if _print_debug:
+		print("[Sprouty Dialogs] Starting dialog with ID: " + _start_id)
+	_is_running = true
+	_process_node(start_node)
+	dialog_started.emit()
 
 
 ## Pause processing the dialog tree
@@ -475,6 +511,7 @@ func resume() -> void:
 func stop() -> void:
 	if _print_debug: print("[Sprouty Dialogs] Dialog ended.")
 	_is_running = false
+	_jump_stack.clear()
 	_current_portrait = null
 	_current_node = ""
 	_paused_node = ""
@@ -507,6 +544,7 @@ func stop() -> void:
 	
 	_portraits_instances.clear()
 	_dialog_box_instances.clear()
+	_release_dialog_resources()
 	dialog_ended.emit()
 	dialog_player_stop.emit()
 	if _destroy_on_end:
@@ -526,6 +564,16 @@ func _process_node(node_name: String) -> void:
 	if not _is_running: return
 	# Check if the node is the end node
 	if node_name == "END":
+		if _jump_stack.size() > 0:
+			var jump_frame = _jump_stack.pop_back()
+			_start_id = jump_frame["start_id"]
+			_next_node_dialog = jump_frame["next_node_dialog"]
+			var return_node = jump_frame["return_node"]
+			if return_node == "" or return_node == "END":
+				_process_node("END")
+			else:
+				_process_node(return_node)
+			return
 		stop()
 		return
 	_current_node = node_name
@@ -614,6 +662,29 @@ func _on_signal_processed(signal_id: String, args: Array, next_node: String) -> 
 	signal_event.emit(signal_id, args)
 	_next_node = next_node
 	_process_node(_next_node)
+
+
+## Handle when a jump node is processed
+func _on_jump_to_node(start_node: String, start_id: String, return_node: String) -> void:
+	if not _is_running:
+		return
+
+	if start_node.is_empty():
+		start_node = _get_start_node_name(start_id)
+
+	if start_node.is_empty() or start_id.is_empty():
+		_process_node(return_node if return_node != "" else "END")
+		return
+
+	_jump_stack.append({
+		"start_id": _start_id,
+		"next_node_dialog": _next_node_dialog,
+		"return_node": return_node,
+	})
+	_start_id = start_id
+	_next_node_dialog = ""
+	_load_dialog_resources(start_id)
+	_process_node(start_node)
 
 
 ## Continue to the next node in the dialog tree
